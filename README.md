@@ -47,7 +47,7 @@ echo 'source ~/turtlebot3_ws/install/setup.bash' >> ~/.bashrc
 cd ~/turtlebot3_ws/src/
 git clone https://github.com/Ashnidh/platoon_ops_merge_spilt_turtlebot3.git
 ```
-Rename the cloned package to 'turtlebot3':
+Rename the cloned package to ```turtlebot3```:
 ```
 cd ~/turtlebot3_ws/src/
 mv ./platoon_ops_merge_spilt_turtlebot3/ ./turtlebot3
@@ -104,6 +104,12 @@ The following topics should be published -
 ```
 Now you are all set up to write and run ROS2 nodes.
 
+You can run the following command(in a new terminal) to move the first bot (leader) and the others will follow:
+```
+ros2 run turtlebot3 test_move.py
+```
+
+You can add an obstacle to the gazebo world (a violet cylinder) by changing the world used in ```launch/start.launch.py``` to ```empty_world_cylinder.world```. The follower bots should avoid the obstacle now.
 ## Problem Statement 
 The problem statement consists fo two parts - 
 - Merging operation of platoons moving on a multi-lane highway system.

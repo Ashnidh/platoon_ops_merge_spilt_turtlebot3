@@ -8,6 +8,12 @@ import csv
 import os
 from datetime import datetime
 
+"""
+
+This node saves the position, distance covered and control inputs for each bot as a CSV file.
+
+"""
+
 NUMBER_OF_BOTS = 4
 
 class MultiCmdVelLogger(Node):
@@ -65,7 +71,7 @@ class MultiCmdVelLogger(Node):
         """ Creates a callback function for plot topic """
         def callback(msg):
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            data = [timestamp, msg.data[0], msg.data[1], msg.data[2]]  # Assuming size 3
+            data = [timestamp, msg.data[0], msg.data[1], msg.data[2]]  
             self.writers[topic].writerow(data)
             self.files[topic].flush()  # Ensure data is written
             # self.get_logger().info(f"Logged data for {topic}: {data}")

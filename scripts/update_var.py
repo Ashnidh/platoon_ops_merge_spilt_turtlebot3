@@ -7,10 +7,16 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Int16MultiArray
 from copy import deepcopy
 
+"""
+
+This node is used to trigger changing of the platoon for a robot.
+
+"""
+
 class TestMoveNode(Node):
     def __init__(self):
         super().__init__("test_move")
-        self.splitting_bots = [2, 4, 5]
+        self.splitting_bots = [2, 4, 5]     # List of bots to send to the platoon-2
         
         # Cache of latest received data per bot
         self.latest_msgs = {

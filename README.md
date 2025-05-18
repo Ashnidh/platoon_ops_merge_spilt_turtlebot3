@@ -65,6 +65,45 @@ This should open a gazebo window with an output similar to the following:
 
 ![Simulation Environment](res/Simulation_Environment.png)
 
+The following topics should be published - 
+```
+/clock
+/joint_states
+/parameter_events
+/rosout
+/tf_static
+/trigger_move
+/v_1/cmd_vel
+/v_1/platoon_info
+/v_1/plot
+/v_1/pose
+/v_1/ref
+/v_1/scan
+/v_1/scan/points
+/v_2/cmd_vel
+/v_2/platoon_info
+/v_2/plot
+/v_2/pose
+/v_2/ref
+/v_2/scan
+/v_2/scan/points
+/v_3/cmd_vel
+/v_3/platoon_info
+/v_3/plot
+/v_3/pose
+/v_3/ref
+/v_3/scan
+/v_3/scan/points
+/v_4/cmd_vel
+/v_4/platoon_info
+/v_4/plot
+/v_4/pose
+/v_4/ref
+/v_4/scan
+/v_4/scan/points
+```
+Now you are all set up to write and run ROS2 nodes.
+
 ## Problem Statement 
 The problem statement consists fo two parts - 
 - Merging operation of platoons moving on a multi-lane highway system.

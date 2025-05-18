@@ -40,7 +40,6 @@ install(PROGRAMS
   scripts/test_move.py
   scripts/ref_state.py
   scripts/follower_move.py
-  scripts/plot_node.py
   scripts/save_csv.py
   scripts/platoon_info_handler.py
   scripts/update_var.py

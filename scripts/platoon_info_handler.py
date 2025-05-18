@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-
 import argparse
 import rclpy
 from rclpy.node import Node
 import math
 import numpy as np
-import time
-import threading
 from std_msgs.msg import Int16MultiArray
 
+"""
 
-class VarMaintainNode(Node):
+This node publishes the (platoon_info ==> Array containing (platoon_number, leader_bot_numeber)) for a robot.
+And also checks if platoon_number changes for that robot then assigns a new leader to it.
+For a bot which is the leader in its platoon ==> leader_bot = 0 
 
+"""
+class PlatoonHandlerNode(Node):
     
     def __init__(self, robot_no, platoon_no):
-        super().__init__('var_maintain_node')
+        super().__init__('platoon_handler_node')
         
         self.robot_no = robot_no
         self.platoon_no = platoon_no
@@ -24,15 +25,8 @@ class VarMaintainNode(Node):
         self.leader_set = True
 
         # Declare and get parameters
-        self.declare_parameter('leader_update_frequency', 100)
-        # self.declare_parameter('queue_size', 100)
-        # self.declare_parameter('queue_update_frequency', 1.0)
-        # self.declare_parameter('velocity_update_frequency', 700.0)
-        
+        self.declare_parameter('leader_update_frequency', 100)      # Frequency of updation of leaders for each bot.
         self.leader_update_frequency = self.get_parameter('leader_update_frequency').value
-        # queue_size = self.get_parameter('queue_size').value
-        # self.queue_update_frequency = self.get_parameter('queue_update_frequency').value
-        # self.velocity_update_frequency = self.get_parameter('velocity_update_frequency').value
 
         # State Some Variables
         self.theta = 0.0
@@ -45,18 +39,7 @@ class VarMaintainNode(Node):
         self.v_ff = 0.0
         self.W_ff = 0.0
         
-        # Queue to store positions
-        # self.position_queue = deque(maxlen=queue_size)
-        
-        # Create a subscriber
-        # self.leader_subscription_ = self.create_subscription(
-        #     Int16MultiArray,
-        #     f'/v_{self.leader_bot}/platoon_info',
-        #     self.leader_subscription_callback,
-        #     10  # QoS profile depth
-        # )
-        
-        
+        # List for storing the leaders for each robot => To be updated after each iteration
         self.latest_platoon_data = {}
         
         # === Dynamic topic subscription ===
@@ -69,7 +52,7 @@ class VarMaintainNode(Node):
                 subscriber = self.create_subscription(
                     Int16MultiArray,
                     topic,
-                    self.generate_callback(i),
+                    self.generate_callback(i),  
                     10
                 )
                 self.subscribers.append(subscriber)
@@ -105,7 +88,6 @@ class VarMaintainNode(Node):
         def callback(msg):
             if len(msg.data) > 1:
                 sender_platoon = msg.data[0]
-                sender_leader = msg.data[1]
 
                 # Store the most recent message for this robot
                 self.latest_platoon_data[robot_id] = msg.data
@@ -119,22 +101,26 @@ class VarMaintainNode(Node):
         return callback
     
     def find_new_leader(self):
+        # Function to find a new leader for a bot whose platoon_no is now changed.
+        # Check for each bot whose robot_no is less than the concerned bot in a decreasing robot_no fashion.
         for rid in range(self.robot_no - 1, 0, -1):  # From robot_no-1 down to 1
             if rid in self.latest_platoon_data:
                 platoon_no = self.latest_platoon_data[rid][0]
                 if platoon_no == self.platoon_no:
+                    # Got a bot that can act as a leader in the new platoon
                     self.leader_bot = rid
                     self.leader_set = True
                     self.get_logger().info(f"New leader found: Robot {rid}")
                     return
 
-        # If no leader found
+        # If no bot found in the new platoon ==> Make Itself the leader.
+        self.leader_bot = 0
         self.get_logger().warn("No valid leader found in the same platoon.")
 
 
     def vars_subscription_callback(self, msg):
         
-        # Callback to process reference data
+        # Callback to platoon_info subscription
     
         if msg.data:
             self.platoon_no = msg.data[0]
@@ -147,30 +133,28 @@ class VarMaintainNode(Node):
         # Check if data is valid before publishing
         if all(not math.isnan(val) for val in msg.data):  
             self.platoon_info_publisher_.publish(msg)
-            # self.get_logger().info(f"Published Reference: {msg.data}")
         else:
             self.get_logger().warn("Reference contains NaN values. Skipping publish.")
 
 def main(args=None):
-    print("Andar")
-    parser = argparse.ArgumentParser(description='Hehe Starting mein toh yahi chalega!')
-    # parser.add_argument('-v', '--max_vel', type=str, default='1.0', help='Name of the robot to spawn')
+    parser = argparse.ArgumentParser(description='Passing arguments to platoon_handler_node')
     parser.add_argument('-n', '--robot_no', type=str, default='1', help='Number of robot acting upon')
     parser.add_argument('-p', '--platoon_no', type=str, default='1', help='Platoon of the robot concerned')
     
     args, unknown = parser.parse_known_args()
     # config = vars(args)
-
-    # args.max_vel = float(args.max_vel)
+    
     args.robot_no = (int)(args.robot_no)
     args.platoon_no = (int)(args.platoon_no)
 
     try:
+        # Initialise Platoon Handler Node
         rclpy.init(args=unknown)
-        node = VarMaintainNode(args.robot_no, args.platoon_no)
+        node = PlatoonHandlerNode(args.robot_no, args.platoon_no)
         rclpy.spin(node)
     finally:
-        print("________________Var_Maintain___________")
+        # Terminate Node
+        print(f"________________Platoon_Handler_Node Closed for robot: {args.robot_no}___________")
         rclpy.shutdown()
 
 if __name__ == '__main__':

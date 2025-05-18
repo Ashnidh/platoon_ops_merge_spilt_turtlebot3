@@ -42,7 +42,7 @@ install(PROGRAMS
   scripts/follower_move.py
   scripts/plot_node.py
   scripts/save_csv.py
-  scripts/vars_script.py
+  scripts/platoon_info_handler.py
   scripts/update_var.py
   DESTINATION lib/${PROJECT_NAME}
 )

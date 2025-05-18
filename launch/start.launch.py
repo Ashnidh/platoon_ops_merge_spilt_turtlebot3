@@ -1,8 +1,5 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-
-import re
-import sys
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -11,21 +8,31 @@ from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, TextSubstitution, PathJoinSubstitution
 from launch_ros.actions import Node
-import xml.etree.ElementTree as ET
 import xacro
 
+"""
+
+This launch file spawns a world and specified robots.
+This node also launches all the necessary nodes needed for 
+employing ROS2 nodes and implementing our solution
+
+We have assumed the robot 1 to be a leader bot.
+For a leader bot, the value of its leader_bot variable is zero(0).
+
+"""
+
 # TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
-NUMBER_OF_BOTS = 4
-RED_BOT_NO = 1
-INITIALISING_VELOCITY = 0.20
+
+NUMBER_OF_BOTS = 4  # Initialise Total Number of bots you want to spawn.
+RED_BOT_NO = 2      # The robot_number of the bot you want to be red colored. 
 
 def generate_robot_list(number_of_robots):
-
+    # This function creates a list of the robots you want to spawn (By default - Spawning in a line).
     robots = []
 
     for i in range(number_of_robots):
-        robot_name = "v_"+str(i+1)
-        x_pose = str(float(-i))
+        robot_name = "v_"+str(i+1)  # Name of the robot (Ex. v_1, v_2, ...)
+        x_pose = str(float(-i))     # Robot's spawning x-position
         robot = {'name': robot_name, 'x_pose': x_pose, 'y_pose': 0.0, 'z_pose': 0.01, 'yaw': 0.00}
         robots.append(robot)
 
@@ -44,9 +51,9 @@ def generate_launch_description():
         ":" +
         os.path.join(get_package_share_directory('turtlebot3'), "models")])
 
+    # Specify World to be Spawned.
     world_path = PathJoinSubstitution([get_package_share_directory('turtlebot3'), "models", "worlds", "empty_world.world"])
-    # world_path = PathJoinSubstitution([get_package_share_directory('turtlebot3'), "models", "worlds", "runway.world"])
-
+    
     gzserver_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(ros_gz_sim, 'launch', 'ign_gazebo.launch.py')
@@ -81,9 +88,8 @@ def generate_launch_description():
         )
     
     ###### general things ended ########
-
-    # launch_file_dir = os.path.join(get_package_share_directory('turtlebot3'), 'launch')
     
+    # Specify turtlebot3 model.sdf file to spawn the Robot
     robot_desc_path = os.path.join(
     get_package_share_directory('turtlebot3'),
     'models', 'turtlebot3', 'model_waffle.sdf')
@@ -102,9 +108,10 @@ def generate_launch_description():
     robots = generate_robot_list(NUMBER_OF_BOTS)
 
     # We create the list of spawn robots commands
-
     ignition_spawn_entity_cmds = []
     robot_state_publisher_cmds = []
+
+    # Creating List of arguments and remappings for ROS2 Bridge
     bridge_args = [
          # Clock (IGN -> ROS2)
         '/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock',
@@ -115,23 +122,11 @@ def generate_launch_description():
         ("/odom/tf", "tf"),
     ]
 
+    # Spawining Robots
     count = 1
     for robot in robots:
         name = robot['name']
-        # tree = ET.parse(robot_desc_path)
-        # root = tree.getroot()
-        
-        # diff_drive_plugin = None 
-        # for plugin in root.iter('plugin'):
-        #     if 'ignition::gazebo::systems::DiffDrive' in plugin.attrib.values():
-        #         diff_drive_plugin = plugin
-
-        # tag_diff_drive_ros_params = diff_drive_plugin.find('ros')
-        # tag_diff_drive_ns = ET.SubElement(tag_diff_drive_ros_params, 'namespace')
-        # tag_diff_drive_ns.text = '/' + robot['name']
-        # ros_tf_remap = ET.SubElement(tag_diff_drive_ros_params, 'remapping')
-        # ros_tf_remap.text = '/tf:=/' + robot['name'] + '/tf'
-
+        # Spawning red robot
         if count == RED_BOT_NO:
             # Spawn each robot
             ignition_spawn_entity_cmd = Node(
@@ -144,10 +139,10 @@ def generate_launch_description():
                         '-file', robot_red_desc_path,
                         '-sdf',
                         '-allow_renaming', 'true',
-                        '-x', TextSubstitution(text=str(robot['x_pose'])),
-                        '-y', TextSubstitution(text=str(robot['y_pose'])),
-                        '-z', TextSubstitution(text=str(robot['z_pose'])),
-                        '-Y', TextSubstitution(text=str(robot['yaw'])),
+                        '-x', TextSubstitution(text=str(robot['x_pose'])),  # Initial x-position of robot
+                        '-y', TextSubstitution(text=str(robot['y_pose'])),  # Initial y-position of robot
+                        '-z', TextSubstitution(text=str(robot['z_pose'])),  # Initial z-position of robot
+                        '-Y', TextSubstitution(text=str(robot['yaw'])),     # Initial yaw of robot
                         '-robot_namespace', robot['name']])
                         
             # Robot state publisher for each robot
@@ -161,6 +156,7 @@ def generate_launch_description():
                             'use_sim_time': use_sim_time,
                             'robot_description': robot_red_desc.toxml()}])
         else:
+        # Spawning Default (White) robots
             # Spawn each robot
             ignition_spawn_entity_cmd = Node(
                 package='ros_ign_gazebo',
@@ -172,12 +168,12 @@ def generate_launch_description():
                         '-file', robot_desc_path,
                         '-sdf',
                         '-allow_renaming', 'true',
-                        '-x', TextSubstitution(text=str(robot['x_pose'])),
-                        '-y', TextSubstitution(text=str(robot['y_pose'])),
-                        '-z', TextSubstitution(text=str(robot['z_pose'])),
-                        '-Y', TextSubstitution(text=str(robot['yaw'])),
+                        '-x', TextSubstitution(text=str(robot['x_pose'])),  # Initial x-position of robot
+                        '-y', TextSubstitution(text=str(robot['y_pose'])),  # Initial y-position of robot
+                        '-z', TextSubstitution(text=str(robot['z_pose'])),  # Initial z-position of robot
+                        '-Y', TextSubstitution(text=str(robot['yaw'])),     # Initial yaw of robot
                         '-robot_namespace', robot['name']])
-                    
+                        
             # Robot state publisher for each robot
             robot_state_publisher_cmd = Node(
                 package='robot_state_publisher',
@@ -215,6 +211,7 @@ def generate_launch_description():
         count += 1
 
 
+    # Command Node for ROS2 bridge
     bridge_cmd = Node(
         package='ros_ign_bridge',
         executable='parameter_bridge',
@@ -224,6 +221,7 @@ def generate_launch_description():
         output='screen'
     )
 
+    # Command Node for Static Transform Publisher 
     map_static_tf = Node(package='tf2_ros',
                         executable='static_transform_publisher',
                         name='static_transform_publisher',
@@ -232,22 +230,23 @@ def generate_launch_description():
                         arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0.0', 'map', 'odom'])
 
 
-    var_scripts = [] 
+    # Command nodes for Platoon_info (platoon no., leader bot no.) handler for each bot
+    platoon_handler_scripts = [] 
     count = 1
     for robot in robots:
-        var_script = Node(
+        platoon_handler_script = Node(
             package='turtlebot3',
-            executable='vars_script.py',
+            executable='platoon_info_handler.py',
             arguments=[
-                # '--max_vel', TextSubstitution(text=str(MAXIMUM_CONSTANT_VELOCITY)),
-                '--robot_no', TextSubstitution(text=str(count)),            
-                '--platoon_no', TextSubstitution(text=str(1)),            
+                '--robot_no', TextSubstitution(text=str(count)),    # Specify Robot_number of the concerned bot
+                '--platoon_no', TextSubstitution(text=str(1)),      # Specify initial platoon_number of the concerned bot      
                 '--ros-args', '--'  # Ensures ROS 2 doesn't pass additional args
                        ],
             )
         count += 1
-        var_scripts.append(var_script)
+        platoon_handler_scripts.append(platoon_handler_script)
 
+    # Command nodes for reference state publisher for each bot
     ref_state_scripts = [] 
     count = 1
     for robot in robots:
@@ -255,56 +254,30 @@ def generate_launch_description():
             package='turtlebot3',
             executable='ref_state.py',
             arguments=[
-                # '--max_vel', TextSubstitution(text=str(MAXIMUM_CONSTANT_VELOCITY)),
-                '--robot_no', TextSubstitution(text=str(count)),            
+                '--robot_no', TextSubstitution(text=str(count)),    # Specify Robot_number of the concerned bot
                 '--ros-args', '--'  # Ensures ROS 2 doesn't pass additional args
                        ],
             )
         count += 1
         ref_state_scripts.append(ref_script)
 
+    # Command nodes for following the preceeding leader for each follower bot
     follower_scripts = [] 
     count = 1
     for robot in robots:
-        if count != 1:
+        if count != 1:      # Exempted for the first bot - Leader
             follow_script = Node(
                 package='turtlebot3',
                 executable='follower_move.py',
                 arguments=[
-                    # '--max_vel', TextSubstitution(text=str(MAXIMUM_CONSTANT_VELOCITY)),
-                    '--robot_no', TextSubstitution(text=str(count)),            
-                    '--leader_bot', TextSubstitution(text=str(count-1)),            
+                    '--robot_no', TextSubstitution(text=str(count)),        # Specify Robot_number of the concerned bot
+                    '--leader_bot', TextSubstitution(text=str(count-1)),    # Specify initial leader bot for the concerned bot              
                     '--ros-args', '--'  # Ensures ROS 2 doesn't pass additional args
                         ],
                 )
             follower_scripts.append(follow_script)
         count += 1
 
-    # Adding scripts for initialisation fo each robot
-    # ref_state_scripts = [] 
-    # count = 1
-    # for robot in robots:
-    #     init_script = Node(
-    #         package='turtlebot3',
-    #         executable='init_script.py',
-    #         arguments=[
-    #             '--init_vel', TextSubstitution(text=str(INITIALISING_VELOCITY)),
-    #             '--robot_no', TextSubstitution(text=str(count)),
-    #                    ],
-    #         )
-    #     count += 1
-    #     ref_state_scripts.append(init_script)
-    
-
-    # yumyum = Node(
-    #     package='turtlebot3',
-    #     executable='test_move.py',
-    #     arguments=[
-    #         # '--init_vel', TextSubstitution(text=str(INITIALISING_VELOCITY)),
-    #         # '--robot_no', TextSubstitution(text=str(count)),
-    #                 ],
-    #         )
-    
     # Create the launch description and populate
     ld = LaunchDescription()
     
@@ -318,22 +291,17 @@ def generate_launch_description():
         
     for spawn_robot_cmd in ignition_spawn_entity_cmds:
         ld.add_action(spawn_robot_cmd)
-    # for cmd in robot_state_publisher_cmds:
-    #     ld.add_action(cmd)
 
     ld.add_action(bridge_cmd)
     ld.add_action(map_static_tf)
     
-    for var_script in var_scripts:
-        ld.add_action(var_script)
+    for platoon_handler_script in platoon_handler_scripts:
+        ld.add_action(platoon_handler_script)
     
     for ref_script in ref_state_scripts:
         ld.add_action(ref_script)
     
     for follow_script in follower_scripts:
         ld.add_action(follow_script)
-
-    # ld.add_action(yumyum)
-
 
     return ld

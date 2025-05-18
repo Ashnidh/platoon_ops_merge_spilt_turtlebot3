@@ -1,3 +1,7 @@
+/*
+This is an example c++ node
+*/
+
 #include "rclcpp/rclcpp.hpp"
 #include "turtlebot3/cpp_header.hpp"
 

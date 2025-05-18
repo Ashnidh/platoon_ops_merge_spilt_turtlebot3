@@ -24,7 +24,7 @@ For a leader bot, the value of its leader_bot variable is zero(0).
 # TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
 
 NUMBER_OF_BOTS = 4  # Initialise Total Number of bots you want to spawn.
-RED_BOT_NO = 2      # The robot_number of the bot you want to be red colored. 
+RED_BOT_NO = 1      # The robot_number of the bot you want to be red colored. 
 
 def generate_robot_list(number_of_robots):
     # This function creates a list of the robots you want to spawn (By default - Spawning in a line).

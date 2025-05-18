@@ -1,3 +1,7 @@
+/*
+Header file for C++ Nodes
+*/
+
 #include "rclcpp/rclcpp.hpp"
 
 class MyCustomNode : public rclcpp::Node 

@@ -39,16 +39,31 @@ sudo apt install ros-humble-desktop python3-argcomplete
 sudo apt install ros-dev-tools
 ```
 ### 5. Setting up the ROS2 Workspace with the turtlebot3 package
+Create a ROS2 workspace and clone the package:
 ```
 cd ~
 mkdir -p ~/turtlebot3_ws/src/
-cd ~/PX4_ws/src/
+echo 'source ~/turtlebot3_ws/install/setup.bash' >> ~/.bashrc
+cd ~/turtlebot3_ws/src/
 git clone https://github.com/Ashnidh/platoon_ops_merge_spilt_turtlebot3.git
+```
+Rename the cloned package to 'turtlebot3':
+```
+cd ~/turtlebot3_ws/src/
 mv ./platoon_ops_merge_spilt_turtlebot3/ ./turtlebot3
+```
+Build the workspace:
+```
 cd ~/turtlebot3_ws
 colcon build
-echo 'source ~/turtlebot3_ws/install/setup.bash' >> ~/.bashrc
 ```
+Launch the simulation environment:
+```
+ros2 launch turtlebot3 start.launch.py
+```
+This should open a gazebo window with an output similar to the following:
+
+![Simulation Environment](res/Simulation_Environment.png)
 
 ## Problem Statement 
 The problem statement consists fo two parts - 
@@ -94,7 +109,7 @@ To implement this part the following research paper must be followed-
 
  The platoon number must be decided with respect to destination. Some target points could be implemented for the same. In this as the platoon number of vehicles will change the leader of the vehicles will change and thus the gap created during splitting or the inter-vehicular distance will get taken care of automatically.
 
-         INSERT IMAGE HERE
+![Splitting Algorith Flow-chart](res/Splitting_Algo_flowchart.jpeg)
 
  ### 4. Merging operation  
 In merging operation we will require two variables - platoon number and platoon count. Platoon count stores the number of vehicles in a platoon.
@@ -104,7 +119,7 @@ Lets assume there are two platoons platoon 1 and platoon 2. Platoon 2 consists o
 
 To create a distance of (M+1)*L we are creating a separate reference which starts as L distance and increases upto (M+1)*L. This is done to ensure that i<sup>th</sup> vehicle increases gap from its preceding vehicle while following the same trajectory.
 
-      INSERT IMAGE HERE
+![Merging Algorith Flow-chart](res/Merging_Algo_flowchart.jpeg)
 
 ## Important points and Suggestions : 
 ### 1. Important Points :

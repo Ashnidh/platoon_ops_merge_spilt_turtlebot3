@@ -38,6 +38,18 @@ sudo apt install python3-colcon-common-extensions
 sudo apt install ros-humble-desktop python3-argcomplete
 sudo apt install ros-dev-tools
 ```
+### 5. Setting up the ROS2 Workspace with the turtlebot3 package
+```
+cd ~
+mkdir -p ~/turtlebot3_ws/src/
+cd ~/PX4_ws/src/
+git clone https://github.com/Ashnidh/platoon_ops_merge_spilt_turtlebot3.git
+mv ./platoon_ops_merge_spilt_turtlebot3/ ./turtlebot3
+cd ~/turtlebot3_ws
+colcon build
+echo 'source ~/turtlebot3_ws/install/setup.bash' >> ~/.bashrc
+```
+
 ## Problem Statement 
 The problem statement consists fo two parts - 
 - Merging operation of platoons moving on a multi-lane highway system.

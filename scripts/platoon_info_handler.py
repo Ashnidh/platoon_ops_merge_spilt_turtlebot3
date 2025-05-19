@@ -9,7 +9,7 @@ from std_msgs.msg import Int16MultiArray
 
 """
 
-This node publishes the (platoon_info ==> Array containing (platoon_number, leader_bot_numeber)) for a robot.
+This node publishes the platoon_info (==> Array containing (platoon_number, leader_bot_numeber)) for a robot.
 And also checks if platoon_number changes for that robot then assigns a new leader to it.
 For a bot which is the leader in its platoon ==> leader_bot = 0 
 

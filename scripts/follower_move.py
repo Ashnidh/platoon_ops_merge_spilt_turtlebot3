@@ -17,15 +17,14 @@ from sensor_msgs.msg import LaserScan
 
 
 """
-Ref State Elements:
 
-x_r
-y_r
-theta_r
-v_ff
-w_ff
+This node publishes command velocity to follower
+Includes Obstacle avoidance algorithm  (Refer to paper in README file)
+Also it dynamically switches leader reference trajectory based on platoon info 
 
 """
+
+# Ref State Elements:{x_r,y_r,theta_r,v_ff,w_ff}
 
 class FollowerMoveNode(Node):
 
@@ -46,7 +45,7 @@ class FollowerMoveNode(Node):
         self.robot_no = robot_no
         self.leader_bot = leader_bot
         self.platoon_no = 1
-
+        # Check current leader bot for each robot
         self.get_logger().info(f'robot_no: {self.robot_no}')
         self.get_logger().info(f'leader_bot: {self.leader_bot}')
         
@@ -95,7 +94,7 @@ class FollowerMoveNode(Node):
         self.cmd_vel_pub = self.create_publisher(Twist, f'v_{self.robot_no}/cmd_vel', 10)
 
         
-        # Create a subscriber
+        # Subscribe to reference coordinates
         
         self.ref_subscription_ = self.create_subscription(
             Float32MultiArray,
@@ -103,21 +102,21 @@ class FollowerMoveNode(Node):
             self.ref_callback,
             10  # QoS profile depth
         )
-        
+        # Get platoon info for each bot
         self.vars_subscription_ = self.create_subscription(
             Int16MultiArray,
             f'v_{self.robot_no}/platoon_info',
             self.vars_subscription_callback,
             10  # QoS profile depth
         )
-        
+        # Get current position of each robot
         self.pose_subscription_ = self.create_subscription(
             PoseArray,
             f'v_{self.robot_no}/pose',
             self.pose_callback,
             10  # QoS profile depth
         )
-        
+        # Subcribe to laser scan data for obstacle detection
         self.subscription = self.create_subscription(
             LaserScan,
             f'v_{self.robot_no}/scan',
@@ -175,20 +174,22 @@ class FollowerMoveNode(Node):
         
     def vars_subscription_callback(self, msg):
         
-        # Callback to process reference data
+        # Callback to process platoon info
         
         with self.lock:
             if msg.data:
                 new_platoon = msg.data[0]
                 new_leader = msg.data[1]
                 new_topic = f'v_{new_leader}/ref'
-                
+                # Update leader reference topic dynamically
                 if new_topic != self.current_leader_ref_topic:
                     self.get_logger().info(f"Switching leader from {self.current_leader_ref_topic} to {new_topic}")
                     
+                    # Destroy old subscription
                     if self.ref_subscription_:
                         self.destroy_subscription(self.ref_subscription_)
                     
+                    # Create new subscription to update leader reference trajectory
                     self.ref_subscription_ = self.create_subscription(
                         Float32MultiArray,
                         new_topic,
@@ -412,8 +413,8 @@ class FollowerMoveNode(Node):
 
 
 def main(args=None):
-    print("Andar")
-    parser = argparse.ArgumentParser(description='Hehe Starting mein toh yahi chalega!')
+    print("Inside main")
+    parser = argparse.ArgumentParser(description='Started')
     parser.add_argument('-l', '--leader_bot', type=str, default='1', help='Name of the robot to spawn')
     parser.add_argument('-n', '--robot_no', type=str, default='1', help='Number of robot acting upon')
     

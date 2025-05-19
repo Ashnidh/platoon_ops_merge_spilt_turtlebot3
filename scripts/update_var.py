@@ -9,14 +9,16 @@ from copy import deepcopy
 
 """
 
-This node is used to trigger changing of the platoon for a robot.
+This node is used for dynamic platoon assignment.It checks the current platoon info(platoon-1,platoon-2) and updates continously
+Trigger this node to change the platoon info of set of predefined bots.
+
 
 """
 
 class TestMoveNode(Node):
     def __init__(self):
         super().__init__("test_move")
-        self.splitting_bots = [2, 4, 5]     # List of bots to send to the platoon-2
+        self.splitting_bots = [2, 4, 5]     # List of predefined bots to send to the platoon-2
         
         # Cache of latest received data per bot
         self.latest_msgs = {
@@ -24,7 +26,7 @@ class TestMoveNode(Node):
             for bot_no in self.splitting_bots
         }
 
-        # Publishers and Subscribers
+        # Subscribe to current platoon info, publish updated platoon info for each bot.
         self.var_update_pubs = {}
         self.subs = {}
 
@@ -40,7 +42,7 @@ class TestMoveNode(Node):
 
         self.var_update_timer_ = self.create_timer(0.01, self.var_update_command)
         self.time_step = 0.0
-        self.get_logger().info("Test Move Chaalu!!")
+        self.get_logger().info("Test Move node has started")
     
     def callback_platoon_info(self, msg, bot_no):
         # Update only if data has expected format
@@ -61,7 +63,7 @@ class TestMoveNode(Node):
         
 
 def main(args=None):
-    print("Andar")
+    print("Inside main")
     rclpy.init(args=args)
     node = TestMoveNode()
     rclpy.spin(node)

@@ -111,24 +111,25 @@ ros2 run turtlebot3 test_move.py
 
 You can add an obstacle to the gazebo world (a violet cylinder) by changing the world used in ```launch/start.launch.py``` to ```empty_world_cylinder.world```. The follower bots should avoid the obstacle now.
 ## Problem Statement 
-The problem statement consists fo two parts - 
+The problem statement consists of two parts - 
 - Merging operation of platoons moving on a multi-lane highway system.
 - Splitting of a single platoon into two or more platoons.
 
 In a platoon all vehicles must maintain an appropriate safety distance.
 
-The protocol to be used here is decentralised protocol where each vehicle makes its own decision depending on the surrounding environment and has information of the preceeding vehicle only.
+The protocol used here is decentralised protocol with leader-follower approach where each vehicle makes its own decision depending on the surrounding environment and has information of the leader vehicle only.For every follower vehicle default leader is it's preceding vehicle.
 
 
 ### Splitting :
+Case : In a platoon with n vehicles, m specific vechiles split to form a new platoon.
 In the splitting operation the two major requirements are :
-- Deciding which platoon a vehicle wants to join and their new leaders. As the vehicle decide their trajectory based on the preeeding vehicle information, the leaders(precceding vehicle) for vehicles change during splitting operation.
+- Deciding new leaders for each vehicle. As the vehicles decide their trajectories based on the preeeding vehicle information, the leaders(precceding vehicle) for vehicles change during splitting operation.
 - Stabilization of platoon(s) after operation i.e. all vehicles maintain appropriate safety distance. Vehicles accelerate to fill the gap left by splitting vehicles.
 
 ### Merging :
+Case : In a platoon with n vehicles, a platoon with m vechiles merge to form a new platoon.
 In the merging operation the major requirements are : 
-- Deciding the appropriate positions for vehicles to merge in the platoon based on their relative positions.
-- Creation of space in the platoon for incoming vehicles.
+- Creating space in the platoon for incoming vehicles and deciding new leaders.
 - Stabilization of platoon(s) after the completion of merging operation.
 
 ## Solution to the problem statement
@@ -143,23 +144,21 @@ To implement this part the following research paper must be followed-
  After implementing this part(upto obstacle avoidance), the vehicles will be able to move in a single line platoon with each vehicle following its preceeding vehicle's trajectory.
 
  ### 2. Obstacle avoidance 
- Obstacle avoidance will play a crucial part as there are high chances of vehicles colliding into each other during merging and splitting operations. The algorithm for obstacle avoidance is mentioned in the above mentioned(section 3.1). In obstacle avoidance the data for nearest vehicle or obstacle is obtained with the help of Lidar sensor.
+ Obstacle avoidance will play a crucial part as there are high chances of vehicles colliding into each other during merging and splitting operations. The algorithm for obstacle avoidance is mentioned in the paper. In obstacle avoidance the data for nearest vehicle or obstacle is obtained with the help of Lidar sensor.
 
  The above mentioned section 1 and 2 are the pre-requisite for merging and splitting operations.
 
  ### 3. Splitting operation
  In splitting operation we need a variable which will help us to determine the platoon a vehicle will join. Lets say the variable is platoon number.
 
- In this splitting algorithm each vehicle checks the platoon number of its preceeding vehicle and if it is same as its own platoon number then it follows and if the platoon numbers don't match it checks the vehicle next to it and so on. If platoon numers of all the preceeding vehicles don't match then it becomes the leader of its own platoon.
+ In this splitting algorithm each vehicle checks the platoon number of its preceeding vehicle and if it is same as its own platoon number then it follows and if the platoon numbers don't match it checks the vehicle preceding to it and so on. If platoon numbers of all the preceeding vehicles don't match then it becomes the leader of its own platoon.
 
- The platoon number must be decided with respect to destination. Some target points could be implemented for the same. In this as the platoon number of vehicles will change the leader of the vehicles will change and thus the gap created during splitting or the inter-vehicular distance will get taken care of automatically.
+ The platoon number must be decided with respect to destination. Some target points could be implemented for the same. In this for every vehicle as the platoon number changes, leader gets updated thus the gap created during splitting or the inter-vehicular distance will get taken care of automatically.
 
-![Splitting Algorith Flow-chart](res/Splitting_Algo_flowchart.jpeg)
+![Splitting Algorithm Flow-chart](res/Splitting_Algo_flowchart.jpeg)
 
  ### 4. Merging operation  
-In merging operation we will require two variables - platoon number and platoon count. Platoon count stores the number of vehicles in a platoon.
-We have only considered a case of merging of whole platoon at a position in other platoon.
-
+In merging operation we require two variables - platoon number and platoon count. Platoon count stores the number of vehicles in a platoon.
 Lets assume there are two platoons platoon 1 and platoon 2. Platoon 2 consists of M vehicles and wants to merge at position i in platoon 1. The distance between i<sup>th</sup> and i-1<sup>th</sup> vehicle is L. The distance between i-1<sup>th</sup> and i<sup>th</sup> vehicle must be increased to (M+1)*L to accomodate the platoon 2. Once the gap is created the i-1<sup>th</sup> vehicle must become the leader of the head of platoon 2. With this, the platoon 2 will merge into platoon 1 and after the merging process is done the leader of the i<sup>th</sup> vehicle of platoon 2 should be shifted to last vehicle of platoon 2 only after it has travelled L distance with platoon 1.
 
 To create a distance of (M+1)*L we are creating a separate reference which starts as L distance and increases upto (M+1)*L. This is done to ensure that i<sup>th</sup> vehicle increases gap from its preceding vehicle while following the same trajectory.

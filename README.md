@@ -117,7 +117,7 @@ The problem statement consists of two parts -
 
 In a platoon all vehicles must maintain an appropriate safety distance.
 
-The protocol used here is decentralised protocol with leader-follower approach where each vehicle makes its own decision depending on the surrounding environment and has information of the leader vehicle only.For every follower vehicle default leader is it's preceding vehicle.
+The protocol used here is decentralised protocol with leader-follower approach where each vehicle makes its own decision depending on the surrounding environment and has information of the leader vehicle only.For every follower vehicle default leader is its preceding vehicle.
 
 
 ### Splitting :
@@ -144,7 +144,7 @@ To implement this part the following research paper must be followed-
  After implementing this part(upto obstacle avoidance), the vehicles will be able to move in a single line platoon with each vehicle following its preceeding vehicle's trajectory.
 
  ### 2. Obstacle avoidance 
- Obstacle avoidance will play a crucial part as there are high chances of vehicles colliding into each other during merging and splitting operations. The algorithm for obstacle avoidance is mentioned in the paper. In obstacle avoidance the data for nearest vehicle or obstacle is obtained with the help of Lidar sensor.
+ Obstacle avoidance will play a crucial part as there are high chances of vehicles colliding into each other during merging and splitting operations. The algorithm for obstacle avoidance is mentioned in the above mentioned(section 3.1). In obstacle avoidance the data for nearest vehicle or obstacle is obtained with the help of Lidar sensor.
 
  The above mentioned section 1 and 2 are the pre-requisite for merging and splitting operations.
 

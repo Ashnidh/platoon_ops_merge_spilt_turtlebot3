@@ -15,28 +15,25 @@ from std_msgs.msg import Bool
 
 
 """
-Queue Elements:
 
-Lh
-x
-y
-vx
-vy
-theta
-timestamp
+This node generates and publishes reference coordinates for each robot.Subscribes to merge trigger, current position of robot.
+Refer to paper mentioned in README for equations used.
 
 """
+
+""" Queue Elements:{Lh,x,y,vx,vy,theta,timestamp} """
 
 
 class ReferenceStateNode(Node):
 
     # robot_no = 1
     queue_update_counter = 0
-    L = 0.8
+    L = 0.8             # safety distance between bots
     
     def __init__(self, robot_no):
         super().__init__('ref_state_node')
         
+        # Subscriber for merge operation to incresae distance
         self.trigger_subscription = self.create_subscription(
             Bool,
             'trigger_move',
@@ -45,7 +42,7 @@ class ReferenceStateNode(Node):
         )
         self.trigger_subscription
         
-        self.L_increase = False
+        self.L_increase = False       # increment safety distance L only during merging
         self.robot_no = robot_no
 
         self.Lh = 0.0
@@ -73,17 +70,18 @@ class ReferenceStateNode(Node):
         # Queue to store positions
         self.position_queue = deque(maxlen=queue_size)
         
-        # Create a subscriber
+        # Subscribe to get current postion
         self.subscription = self.create_subscription(
             PoseArray,
             f'/v_{self.robot_no}/pose',
             self.pose_callback,
             10  # QoS profile depth
         )
-        
+        # Publish reference variables
         self.reference_publisher_ = self.create_publisher(Float32MultiArray, f'/v_{self.robot_no}/ref', 10)
         self.reference_publisher_timer = self.create_timer(0.01, self.publish_reference)
         
+        # Publish current pose and distance for plotting
         self.plot_publisher_ = self.create_publisher(Float32MultiArray, f'/v_{self.robot_no}/plot', 10)
         self.plot_publisher_timer = self.create_timer(0.01, self.publish_plot)
         
@@ -128,7 +126,7 @@ class ReferenceStateNode(Node):
                 self.queue_update_counter += 1
                 self.position_queue.append((self.Lh, *self.curr_pose, *self.curr_vel, self.theta, self.queue_update_counter*rate))
                 if self.L_increase and self.robot_no == 1 and self.L <= 2:
-                    self.L += 0.1
+                    self.L += 0.1  # increase L for merge trigger
                 # self.get_logger().info(f'Queue Content: {list(self.position_queue)}')
                 # self.get_logger().info(f'Velocity: {math.sqrt(self.curr_vel[0] ** 2 + self.curr_vel[1] ** 2)}')
                 # self.get_logger().info(f'Lh for robot {self.robot_no}: {self.Lh}')
@@ -175,6 +173,7 @@ class ReferenceStateNode(Node):
 
         return self.normalize_angle_rad(theta)
 
+    # Using Distance function to calculate reference coordinates.
     def search_position_queue(self):
         LhT = max(self.Lh - self.L, 0)
         if(self.Lh - self.L > 0):
@@ -259,9 +258,9 @@ class ReferenceStateNode(Node):
 
 
 def main(args=None):
-    print("Andar")
-    parser = argparse.ArgumentParser(description='Hehe Starting mein toh yahi chalega!')
-    # parser.add_argument('-v', '--max_vel', type=str, default='1.0', help='Name of the robot to spawn')
+    print("Inside main")
+    parser = argparse.ArgumentParser(description='Started')
+    # parser.add_argument('-v', '--max_vel', type=str, default='1', help='Name of the robot to spawn')
     parser.add_argument('-n', '--robot_no', type=str, default='1', help='Number of robot acting upon')
     
     args, unknown = parser.parse_known_args()
